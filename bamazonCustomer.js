@@ -13,8 +13,8 @@ database: "bamazonDB"
 });
 
 var currentDepartment;
-var amountAvailable;
-var updatedSale
+var amounttoPay;
+var updatedSale;
 
 //connecting to the mysql server and sql database
 connection.connect(function(err){
@@ -52,7 +52,7 @@ function placeOrder() {
             name:"id",
             type: "input",
             message: "What is the ID of the product that you want to buy?",
-            validate: fucntion(value){
+            validate: function(value){
                 var valid = value.match(/^[0-9]+$/)
                 if(valid){
                     return true
@@ -64,7 +64,7 @@ function placeOrder() {
             name: "quantity",
             type: "input",
             message: "How many units you would like to buy?",
-            validate: fucntion(value){
+            validate: function(value){
                 var valid = value.match(/^[0-9]+$/)
                 if(valid){
                     return true
@@ -74,12 +74,35 @@ function placeOrder() {
         }
     ])
     .then(function(answer){
-          //console.log(answer)
-          //console.log('id: ',answer.id)
-          //console.log('quantity: ', answer.quantity)
-          var choiceID = parseInt(answer.id)
-          var product = checkInventory(choiceID, inventory)
-          makePurchase(product, answer.quantity)
+        connection.query('SELECT * FROM products WHERE id = ?', [answer.id], function(err, res){
+            if(answer.selectQuantity > res[0].StockQuantity){
+                console.log('Insufficient Quantity');
+                console.log('This order has been cancelled');
+                console.log('');
+                newOrder();
+            }
+            else{
+                amounttoPay = res[0].Price * answer.selectQuantity;
+                currentDepartment = res[0].DepartmentName;
+                console.log('Thank you for the order!');
+                console.log('You owe $' + amounttoPay);
+                console.log('');
+                //updating product table
+                connection.query('UPDATE products SET ? Where ?', [{
+                    StockQuantity: res[0].StockQuantity - answer.selectQuantity
+                },{
+                    id: answer.id
+                
+                }], function(err,res){});
+                //Updating departments data
+                logSaleToDepartment();
+                newOrder();
+
+            }
+
+          //var choiceID = parseInt(answer.id)
+          //var product = checkInventory(choiceID, inventory)
+          //makePurchase(product, answer.quantity)
 
            //stockQuantity: answer.stock_quantity
        
@@ -88,8 +111,10 @@ function placeOrder() {
            //console.log("Please answer the questions");
       // };
 
-    });
-}
+    })
+}, function(err,res){})
+};
+
 
 
     function makePurchase(item, quantity){
