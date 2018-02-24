@@ -2,18 +2,19 @@ DROP DATABASE IF EXISTS bamazonDB;
 CREATE DATABASE bamazonDB;
 USE bamazonDB;
 
-CREATE TABLE products(
-item_id INT NOT NULL,
-product_name VARCHAR(30) NOT NULL,
-department_name VARCHAR(30) NOT NULL,
-price DECIMAL(10,2) NULL,
-stock_quantity INT NULL
+CREATE TABLE product(
+ItemID INT NOT NULL,
+ProductName VARCHAR(30) NOT NULL,
+DepartmentName VARCHAR(30) NOT NULL,
+Price DECIMAL(10,2) NULL,
+StockQuantity INT NULL
+PRIMARY KEY(ItemID)
 );
 
 
 
-INSERT INTO products
-(item_id, product_name, department_name, price, stock_quantity)
+INSERT INTO product
+(ItemID, ProductName, DepartmentName, Price, StockQuantity)
 VALUES
 (1,"Avocado", "vegetables", 1.53, 10),
 (2,"Banana", "fruits", 0.59, 40),
@@ -26,4 +27,11 @@ VALUES
 (9,"Sour Cream", "diary", 6.67, 26),
 (10,"Milk", "diary", 1.23, 56);
 
-SELECT * FROM products;
+SELECT * FROM product;
+
+CREATE TABLE Departments(
+DepartmentId int AUTO_INCREMENT,
+PRIMARY KEY(DepartmentId),
+DepartmentName varchar(50) NOT NULL,
+OverHeadCosts DECIMAL(11,2) NOT NULL,
+TotalSales DECIMAL(11,2) NOT NULL);
