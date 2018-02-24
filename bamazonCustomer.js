@@ -12,9 +12,11 @@ password: "password",
 database: "bamazonDB"
 });
 
-var productPurchased = [];
+var currentDepartment;
+var amountAvailable;
+var updatedSale
 
-//connect to the mysql server and sql database
+//connecting to the mysql server and sql database
 connection.connect(function(err){
     if(err) throw err;
     start();
@@ -24,32 +26,57 @@ connection.connect(function(err){
 function start() {
 connection.query("SELECT * FROM products", function(err, res){
     if (err) throw err;
-    console.log(res[0].product_name);
-    customerPrompt(res)
-    connection.end()
-});
+    console.log('============================================');
+    console.log('=================Items in Store=============');
+    console.log('============================================');
 
-}
+    for(i=0; i<res.length;i++){
+        console.log('Item ID:' + res[i].id + ' Product Name: ' + res[i].ProductName + ' Price: ' + '$' + res[i].Price + '(Quantity Left: ' + res[i].StockQuantity + ')')
+    }
+    console.log('=============================================');
+    placeOrder();
+})
+
+    }
+    //console.log(res[0].product_name);
+    //customerPrompt(res)
+    //connection.end()
+
+
+
 //function to ask the user item id
-function customerPrompt(inventory) {
+function placeOrder() {
     inquirer
     .prompt([
         {
             name:"id",
             type: "input",
-            message: "What is the ID of the product that you want to buy?"
+            message: "What is the ID of the product that you want to buy?",
+            validate: fucntion(value){
+                var valid = value.match(/^[0-9]+$/)
+                if(valid){
+                    return true
+                }
+                return 'Please enter a valid Product ID'
+            }
         },
         {
             name: "quantity",
             type: "input",
-            message: "How many units you would like to buy?"
-
+            message: "How many units you would like to buy?",
+            validate: fucntion(value){
+                var valid = value.match(/^[0-9]+$/)
+                if(valid){
+                    return true
+                }
+                return 'Please enter a numerical value'
+            }
         }
     ])
     .then(function(answer){
-          console.log(answer)
-          console.log('id: ',answer.id)
-          console.log('quantity: ', answer.quantity)
+          //console.log(answer)
+          //console.log('id: ',answer.id)
+          //console.log('quantity: ', answer.quantity)
           var choiceID = parseInt(answer.id)
           var product = checkInventory(choiceID, inventory)
           makePurchase(product, answer.quantity)
@@ -66,15 +93,14 @@ function customerPrompt(inventory) {
 
 
     function makePurchase(item, quantity){
-        console.log("inside makePurchase", item)
-        console.log("inside makePurchase", quantity)
+        //console.log("inside makePurchase", item)
+        //console.log("inside makePurchase", quantity)
         connection.query(
             "UPDATE products SET stock_quantity = stock_quantity - ? WHERE item_id = ?",
         [quantity, item.item_id],
         function(err, res) {
-           console.log("successfully purchased " + quantity + " " + item.product_name + "s!")
-        }
-      )
+           console.log("Successfully purchased " + quantity + " " + item.product_name + "(s)!")
+        } )
     }
 
     function checkInventory(choiceId, inventory) {
@@ -82,6 +108,9 @@ function customerPrompt(inventory) {
           if (inventory[i].item_id === choiceId) {
             // If a matching product is found, return the product
             return inventory[i];
+          } else {
+              console.log("Insufficient quantity!");
+              
           }
         }
         // Otherwise return null
